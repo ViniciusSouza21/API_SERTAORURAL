@@ -2,15 +2,19 @@ const express = require('express');
 const app = require('../app');
 const router = express.Router();
 const mysql =  require("../mysql").pool;
+const AuthMiddleware = require('../middleware/AuthMiddleware');
 
-router.get('/', (req, res, next)=>{
+router.get('/:id', AuthMiddleware.mandatory, (req, res, next)=>{
+
+    const id = req.params.id;
 
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error }) }
 
         conn.query(
-            'SELECT * FROM pragas;',
+            'SELECT * FROM plantation WHERE user = ?;',
+            id,
             
             (error, result, fields) => {
                 
@@ -22,15 +26,15 @@ router.get('/', (req, res, next)=>{
     });
 });
 
-router.post('/', (req, res, next) =>{
+router.post('/', AuthMiddleware.mandatory, (req, res, next) =>{
 
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'INSERT INTO pragas (inset_praga, desc_praga, data_ident, data_combat) VALUES (?,?,?,?)',
-            [req.body.inset_praga, req.body.desc_praga, req.body.data_ident, req.body.data_combat],
+            'INSERT INTO plantation (user, pests, description, date) VALUES (?,?,?,?)',
+            [req.body.user, req.body.pests, req.body.description, req.body.date],
             
             (error, result, field) => {
                 conn.release();
@@ -42,7 +46,8 @@ router.post('/', (req, res, next) =>{
                     });
                 } 
                 res.status(201).send({
-                    mensagem : 'Praga adicionada ao sistema com sucesso!'
+                    message : 'Plantação inserida com sucesso!',
+                    is_plantation : result.insertId
                 });
             }
         )
@@ -51,15 +56,15 @@ router.post('/', (req, res, next) =>{
 
 });
 
-router.patch('/', (req, res, next) =>{
+router.patch('/', AuthMiddleware.mandatory, (req, res, next) =>{
 
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'UPDATE pragas SET inset_praga = ?, desc_praga = ?, data_ident = ?, data_combat = ? WHERE id_praga = ?',             
-            [req.body.inset_praga, req.body.desc_praga, req.body.data_ident, req.body.data_combat, req.body.id_praga],
+            'UPDATE plantation SET pests = ?, description = ?, date = ? WHERE id = ?',             
+            [req.body.pests, req.body.description, req.body.date, req.body.id],
             
             (error, result, field) => {
                 conn.release();
@@ -71,7 +76,7 @@ router.patch('/', (req, res, next) =>{
                     });
                 } 
                 res.status(202).send({
-                    mensagem : 'Alteração concluída com sucesso!'
+                    message : 'Alteração concluída com sucesso!'
                 });
             }
         )
@@ -80,14 +85,17 @@ router.patch('/', (req, res, next) =>{
 
 });
 
-router.delete('/', (req, res, next) =>{
+router.delete('/:id', AuthMiddleware.mandatory, (req, res, next) =>{
+
+    const id = req.params.id;
+
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'DELETE FROM pragas WHERE id_praga = ?',             
-            [req.body.id_praga],
+            'DELETE FROM plantation WHERE id = ?',             
+            id,
             
             (error, result, field) => {
                 conn.release();
@@ -99,7 +107,7 @@ router.delete('/', (req, res, next) =>{
                     });
                 } 
                 res.status(202).send({
-                    mensagem : 'Praga removida com sucesso!'
+                    message : 'Plantação removida com sucesso!'
                 });
             }
         )

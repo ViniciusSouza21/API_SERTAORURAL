@@ -2,15 +2,17 @@ const express = require('express');
 const app = require('../app');
 const router = express.Router();
 const mysql =  require("../mysql").pool;
+const AuthMiddleware = require('../middleware/AuthMiddleware');
 
-router.get('/', (req, res, next)=>{
+router.get('/', AuthMiddleware.mandatory, (req, res, next)=>{
 
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error }) }
 
         conn.query(
-            'SELECT * FROM plantacao;',
+            'SELECT * FROM supplier;',
+            [req.body.id],
             
             (error, result, fields) => {
                 
@@ -22,15 +24,15 @@ router.get('/', (req, res, next)=>{
     });
 });
 
-router.post('/', (req, res, next) =>{
+router.post('/', AuthMiddleware.mandatory, (req, res, next) =>{
 
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'INSERT INTO plantacao (plant_usuario, plant_praga, desc_plantio, data_plantio, praga) VALUES (?,?,?,?,?)',
-            [req.body.plant_usuario, req.body.plant_praga, req.body.desc_plantio, req.body.data_plantio, req.body.praga],
+            'INSERT INTO supplier (name, email, phone, cnpj, description, street, neighborhood, city, cep, url) VALUES (?,?,?,?,?,?,?,?,?,?)',
+            [req.body.name, req.body.email, req.body.phone, req.body.cnpj, req.body.description, req.body.street, req.body.neighborhood, req.body.city, req.body.cep, req.body.url],
             
             (error, result, field) => {
                 conn.release();
@@ -42,8 +44,8 @@ router.post('/', (req, res, next) =>{
                     });
                 } 
                 res.status(201).send({
-                    mensagem : 'Plantação inserida com sucesso!',
-                    id_plantacao : result.insertId
+                    message : 'Fornecedor Inserido com sucesso!',
+                    id_supplier : result.insertId
                 });
             }
         )
@@ -52,15 +54,15 @@ router.post('/', (req, res, next) =>{
 
 });
 
-router.patch('/', (req, res, next) =>{
+router.patch('/', AuthMiddleware.mandatory, (req, res, next) =>{
 
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'UPDATE plantacao SET plant_usuario = ?, plant_praga = ?, desc_plantio = ?, data_plantio = ?, praga = ? WHERE id_plantacao = ?',             
-            [req.body.plant_usuario, req.body.plant_praga,req.body.desc_plantio, req.body.data_plantio, req.body.praga, req.body.id_plantacao],
+            'UPDATE supplier SET name = ?, email = ?, phone = ?, cnpj = ?, description = ?, street = ?, neighborhood = ?, city = ?, cep = ? WHERE id = ?',             
+            [req.body.name, req.body.email, req.body.phone, req.body.cnpj, req.body.description, req.body.street, req.body.neighborhood, req.body.city, req.body.cep, req.body.id],
             
             (error, result, field) => {
                 conn.release();
@@ -72,7 +74,7 @@ router.patch('/', (req, res, next) =>{
                     });
                 } 
                 res.status(202).send({
-                    mensagem : 'Alteração concluída com sucesso!'
+                    message : 'Alteração concluída com sucesso!'
                 });
             }
         )
@@ -81,14 +83,17 @@ router.patch('/', (req, res, next) =>{
 
 });
 
-router.delete('/', (req, res, next) =>{
+router.delete('/:id', AuthMiddleware.mandatory, (req, res, next) =>{
+
+    const id = req.params.id;
+
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'DELETE FROM plantacao WHERE id_plantacao = ?',             
-            [req.body.id_plantacao],
+            'DELETE FROM supplier WHERE id = ?',             
+            id,
             
             (error, result, field) => {
                 conn.release();
@@ -100,7 +105,7 @@ router.delete('/', (req, res, next) =>{
                     });
                 } 
                 res.status(202).send({
-                    mensagem : 'Plantação removida com sucesso!'
+                    message : 'Fornecedor removido com sucesso!'
                 });
             }
         )

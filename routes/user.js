@@ -3,15 +3,17 @@ const app = require('../app');
 const router = express.Router();
 const mysql =  require("../mysql").pool;
 const bcrypt = require('bcrypt');
+const AuthMiddleware = require('../middleware/AuthMiddleware');
 
-router.get('/', (req, res, next)=>{
+router.get('/', AuthMiddleware.mandatory, (req, res, next)=>{
 
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error }) }
 
         conn.query(
-            'SELECT * FROM usuario;',
+            'SELECT * FROM user;',
+            [req.body.id],
             
             (error, result, fields) => {
                 
@@ -29,7 +31,7 @@ router.post('/', (req, res, next) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
-        conn.query('SELECT * FROM usuario WHERE email = ?', [req.body.email], (error, results) => {
+        conn.query('SELECT * FROM user WHERE email = ?', [req.body.email], (error, results) => {
 
             if(error){
 
@@ -41,21 +43,22 @@ router.post('/', (req, res, next) =>{
             if(results.length > 0){
 
                 res.status(401).send({
-                    mensagem:'E-mail já cadastrado!'
+                    message:'E-mail já cadastrado!'
                 })
 
             }
 
             else{
-                bcrypt.hash(req.body.senha, 10, (errBcrypt, hash) =>{
+                
+                bcrypt.hash(req.body.password, 10, (errBcrypt, hash) =>{
 
                     if (errBcrypt){
                         return res.status(500).send({ error : errBcrypt })
                     }
         
                     conn.query(
-                        'INSERT INTO usuario (cpf, nome, email, senha, localidade) VALUES (?,?,?,?,?)',
-                        [req.body.cpf, req.body.nome, req.body.email, hash, req.body.localidade],
+                        'INSERT INTO user (admin, cpf, name, surname, email, password, active, street, neighborhood, city, cep) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+                        [req.body.admin, req.body.cpf, req.body.name, req.body.surname, req.body.email, hash, req.body.active, req.body.street, req.body.neighborhood, req.body.city, req.body.cep],
                         
                         (error, result, field) => {
                             conn.release();
@@ -67,8 +70,8 @@ router.post('/', (req, res, next) =>{
                                 });
                             } 
                             res.status(201).send({
-                                mensagem : 'Usuário inserido com sucesso!',
-                                id_usuario : result.insertId
+                                message : 'Usuário inserido com sucesso!',
+                                id_user : result.insertId
                             });
                         }
                     )
@@ -76,22 +79,19 @@ router.post('/', (req, res, next) =>{
                 });
             }
         })
-
-        
-
     });
 
 });
 
-router.patch('/', (req, res, next) =>{
+router.patch('/:id', AuthMiddleware.mandatory, (req, res, next) =>{
 
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'UPDATE usuario SET nome = ?, email = ?, senha = ?, localidade = ? WHERE id_usuario = ?',             
-            [req.body.nome, req.body.email, req.body.senha, req.body.localidade, req.body.id_usuario],
+            'UPDATE user SET admin = ?, cpf = ?, name = ?, surname = ?, email = ?, password = ?, active = ?, street = ?, neighborhood = ?, city = ?, cep = ? WHERE id = ?',             
+            [req.body.admin, req.body.cpf, req.body.name, req.body.surname, req.body.email, req.body.password, req.body.active, req.body.street, req.body.neighborhood, req.body.city, req.body.cep, req.body.id],
             
             (error, result, field) => {
                 conn.release();
@@ -103,7 +103,7 @@ router.patch('/', (req, res, next) =>{
                     });
                 } 
                 res.status(202).send({
-                    mensagem : 'Alteração concluída com sucesso!'
+                    message : 'Alteração concluída com sucesso!'
                 });
             }
         )
@@ -112,14 +112,17 @@ router.patch('/', (req, res, next) =>{
 
 });
 
-router.delete('/', (req, res, next) =>{
+router.delete('/:id', AuthMiddleware.mandatory, (req, res, next) =>{
+
+    const id = req.params.id;
+
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'DELETE FROM usuario WHERE id_usuario = ?',             
-            [req.body.id_usuario],
+            'DELETE FROM user WHERE id = ?',             
+            id,
             
             (error, result, field) => {
                 conn.release();
@@ -131,7 +134,7 @@ router.delete('/', (req, res, next) =>{
                     });
                 } 
                 res.status(202).send({
-                    mensagem : 'Usuário removido com sucesso!'
+                    message : 'Usuário removido com sucesso!'
                 });
             }
         )

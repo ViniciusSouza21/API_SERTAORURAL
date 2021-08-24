@@ -2,15 +2,19 @@ const express = require('express');
 const app = require('../app');
 const router = express.Router();
 const mysql =  require("../mysql").pool;
+const AuthMiddleware = require('../middleware/AuthMiddleware');
 
-router.get('/', (req, res, next)=>{
+router.get('/:id', AuthMiddleware.mandatory, (req, res, next)=>{
+
+    const id = req.params.id;
 
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error }) }
 
         conn.query(
-            'SELECT * FROM inseticida;',
+            'SELECT * FROM functionary WHERE employer = ?;',
+            id,
             
             (error, result, fields) => {
                 
@@ -22,15 +26,15 @@ router.get('/', (req, res, next)=>{
     });
 });
 
-router.post('/', (req, res, next) =>{
+router.post('/', AuthMiddleware.mandatory, (req, res, next) =>{
 
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'INSERT INTO inseticida (desc_inset, inset_use) VALUES (?,?)',
-            [req.body.desc_inset, req.body.inset_use],
+            'INSERT INTO functionary (employer, name, wage, Workeddays, street, neighborhood, city, cep) VALUES (?,?,?,?,?,?,?,?)',
+            [req.body.employer, req.body.name, req.body.wage, req.body.Workeddays, req.body.street, req.body.neighborhood, req.body.city, req.body.cep],
             
             (error, result, field) => {
                 conn.release();
@@ -42,7 +46,8 @@ router.post('/', (req, res, next) =>{
                     });
                 } 
                 res.status(201).send({
-                    mensagem : 'Inseticida inserido com sucesso!'
+                    message : 'Funcionario inserido com sucesso!',
+                    id_functionary : result.insertId
                 });
             }
         )
@@ -51,15 +56,15 @@ router.post('/', (req, res, next) =>{
 
 });
 
-router.patch('/', (req, res, next) =>{
+router.patch('/', AuthMiddleware.mandatory, (req, res, next) =>{
 
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'UPDATE inseticida SET desc_inset = ? WHERE id_inset = ?',             
-            [req.body.desc_inset, req.body.id_inset],
+            'UPDATE functionary SET name = ?, wage = ?, Workeddays = ?, street = ?, city = ?, cep = ? WHERE id = ?',             
+            [req.body.name, req.body.wage, req.body.Workeddays, req.body.street, req.body.city, req.body.cep, req.body.id],
             
             (error, result, field) => {
                 conn.release();
@@ -71,7 +76,7 @@ router.patch('/', (req, res, next) =>{
                     });
                 } 
                 res.status(202).send({
-                    mensagem : 'Alteração concluída com sucesso!'
+                    message : 'Alteração concluída com sucesso!'
                 });
             }
         )
@@ -80,14 +85,17 @@ router.patch('/', (req, res, next) =>{
 
 });
 
-router.delete('/', (req, res, next) =>{
+router.delete('/:id', AuthMiddleware.mandatory, (req, res, next) =>{
+
+    const id = req.params.id;
+
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'DELETE FROM inseticida WHERE id_inset = ?',             
-            [req.body.id_inset],
+            'DELETE FROM functionary WHERE id = ?',             
+            id,
             
             (error, result, field) => {
                 conn.release();
@@ -99,7 +107,7 @@ router.delete('/', (req, res, next) =>{
                     });
                 } 
                 res.status(202).send({
-                    mensagem : 'Remoção concluída com sucesso!'
+                    message : 'Usuário removido com sucesso!'
                 });
             }
         )

@@ -2,15 +2,19 @@ const express = require('express');
 const app = require('../app');
 const router = express.Router();
 const mysql =  require("../mysql").pool;
+const AuthMiddleware = require('../middleware/AuthMiddleware');
 
-router.get('/', (req, res, next)=>{
+router.get('/:id', AuthMiddleware.mandatory, (req, res, next)=>{
+
+    const id = req.params.id;
 
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error }) }
 
         conn.query(
-            'SELECT * FROM funcionario;',
+            'SELECT * FROM product WHERE supplier = ?;',
+            id,
             
             (error, result, fields) => {
                 
@@ -22,15 +26,17 @@ router.get('/', (req, res, next)=>{
     });
 });
 
-router.post('/', (req, res, next) =>{
+router.post('/', AuthMiddleware.mandatory, (req, res, next) =>{
+
+    console.log(req.usuario);
 
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'INSERT INTO funcionario (empregador, nome, salario, endereco) VALUES (?,?,?,?)',
-            [req.body.empregador, req.body.nome,req.body.salario, req.body.endereco],
+            'INSERT INTO product (supplier, description, value, available, unit, category, name) VALUES (?,?,?,?,?,?,?)',
+            [req.body.supplier, req.body.description, req.body.value, req.body.available, req.body.unit, req.body.category, req.body.name],
             
             (error, result, field) => {
                 conn.release();
@@ -42,8 +48,8 @@ router.post('/', (req, res, next) =>{
                     });
                 } 
                 res.status(201).send({
-                    mensagem : 'Funcionario inserido com sucesso!',
-                    id_funcionario : result.insertId
+                    message : 'Produto inserido com sucesso!',
+                    id_product: result.insertId
                 });
             }
         )
@@ -52,15 +58,15 @@ router.post('/', (req, res, next) =>{
 
 });
 
-router.patch('/', (req, res, next) =>{
+router.patch('/', AuthMiddleware.mandatory, (req, res, next) =>{
 
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'UPDATE funcionario SET nome = ?, salario = ?, endereco = ? WHERE id_func = ?',             
-            [req.body.nome, req.body.salario, req.body.endereco, req.body.id_func],
+            'UPDATE product SET description = ?, value = ?, available = ?, unit = ?, category = ?, name = ? WHERE id = ?',             
+            [req.body.description, req.body.value, req.body.available, req.body.unit, req.body.category, req.body.name, req.body.id],
             
             (error, result, field) => {
                 conn.release();
@@ -72,7 +78,7 @@ router.patch('/', (req, res, next) =>{
                     });
                 } 
                 res.status(202).send({
-                    mensagem : 'Alteração concluída com sucesso!'
+                    message : 'Alteração concluída com sucesso!'
                 });
             }
         )
@@ -81,14 +87,17 @@ router.patch('/', (req, res, next) =>{
 
 });
 
-router.delete('/', (req, res, next) =>{
+router.delete('/:id', AuthMiddleware.mandatory, (req, res, next) =>{
+
+    const id = req.params.id;
+
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'DELETE FROM funcionario WHERE id_func = ?',             
-            [req.body.id_funcionario],
+            'DELETE FROM product WHERE id = ?',             
+            id,
             
             (error, result, field) => {
                 conn.release();
@@ -100,7 +109,7 @@ router.delete('/', (req, res, next) =>{
                     });
                 } 
                 res.status(202).send({
-                    mensagem : 'Usuário removido com sucesso!'
+                    message : 'Produto removido com sucesso!'
                 });
             }
         )

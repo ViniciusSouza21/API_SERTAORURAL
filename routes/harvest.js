@@ -2,15 +2,19 @@ const express = require('express');
 const app = require('../app');
 const router = express.Router();
 const mysql =  require("../mysql").pool;
+const AuthMiddleware = require('../middleware/AuthMiddleware');
 
-router.get('/', (req, res, next)=>{
+router.get('/:id', AuthMiddleware.mandatory, (req, res, next)=>{
+
+    const id = req.params.id;
 
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error }) }
 
         conn.query(
-            'SELECT * FROM vendas;',
+            'SELECT * FROM harvest WHERE user = ?',
+            id,
             
             (error, result, fields) => {
                 
@@ -22,15 +26,15 @@ router.get('/', (req, res, next)=>{
     });
 });
 
-router.post('/', (req, res, next) =>{
+router.post('/', AuthMiddleware.mandatory, (req, res, next) =>{
 
-    mysql.getConnection((error, conn) =>{
+    mysql.getConnection((error, conn) => {
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'INSERT INTO vendas (usuario_venda, desc_venda, data_venda, desc_comprador, qtd_venda, valor_venda, num_pedido, uni_venda) VALUES (?,?,?,?,?,?,?,?)',
-            [req.body.usuario_venda,req.body.desc_venda, req.body.data_venda, req.body.desc_comprador, req.body.qtd_venda, req.body.valor_venda, req.body.num_pedido, req.body.uni_venda],
+            'INSERT INTO harvest (user, functionary, description, quantity, date, unit) VALUES (?,?,?,?,?,?)',
+            [req.body.user, req.body.functionary, req.body.description, req.body.quantity, req.body.date, req.body.unit],
             
             (error, result, field) => {
                 conn.release();
@@ -42,7 +46,8 @@ router.post('/', (req, res, next) =>{
                     });
                 } 
                 res.status(201).send({
-                    mensagem : 'Venda adicionada com sucesso!'
+                    message : 'Colheita inserida com sucesso!',
+                    id_harvest : result.insertId
                 });
             }
         )
@@ -51,16 +56,15 @@ router.post('/', (req, res, next) =>{
 
 });
 
-router.patch('/', (req, res, next) =>{
+router.patch('/', AuthMiddleware.mandatory, (req, res, next) =>{
 
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'UPDATE vendas SET desc_venda = ?, desc_comprador = ?, data_venda = ?, qtd_venda = ?, valor_venda = ?, num_pedido = ?, uni_venda = ? WHERE id_vendas = ?',   
-
-            [req.body.desc_venda, req.body.desc_comprador, req.body.data_venda, req.body.qtd_venda, req.body.valor_venda, req.body.num_pedido, req.body.uni_venda, req.body.id_vendas],
+            'UPDATE harvest SET functionary = ?, description = ?, quantity = ?, date = ?, unit = ? WHERE id = ?',             
+            [req.body.functionary, req.body.description, req.body.quantity, req.body.date, req.body.unit, req.body.id],
             
             (error, result, field) => {
                 conn.release();
@@ -72,7 +76,7 @@ router.patch('/', (req, res, next) =>{
                     });
                 } 
                 res.status(202).send({
-                    mensagem : 'Alteração concluída com sucesso!'
+                    message : 'Alteração concluída com sucesso!'
                 });
             }
         )
@@ -81,14 +85,17 @@ router.patch('/', (req, res, next) =>{
 
 });
 
-router.delete('/', (req, res, next) =>{
+router.delete('/:id', AuthMiddleware.mandatory, (req, res, next) => {
+
+    const id = req.params.id;
+
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'DELETE FROM vendas WHERE id_vendas = ?',             
-            [req.body.id_vendas],
+            'DELETE FROM harvest WHERE id = ?',             
+            id,
             
             (error, result, field) => {
                 conn.release();
@@ -100,7 +107,7 @@ router.delete('/', (req, res, next) =>{
                     });
                 } 
                 res.status(202).send({
-                    mensagem : 'Remoção concluída com sucesso!'
+                    message : 'Colheita removida com sucesso!'
                 });
             }
         )

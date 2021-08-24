@@ -2,15 +2,19 @@ const express = require('express');
 const app = require('../app');
 const router = express.Router();
 const mysql =  require("../mysql").pool;
+const AuthMiddleware = require('../middleware/AuthMiddleware');
 
-router.get('/', (req, res, next)=>{
+router.get('/:id', AuthMiddleware.mandatory, (req, res, next)=>{
+
+    const id = req.params.id;
 
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error }) }
 
         conn.query(
-            'SELECT * FROM colheita;',
+            'SELECT * FROM pests WHERE id_plantation = ?;',
+            id,
             
             (error, result, fields) => {
                 
@@ -22,15 +26,15 @@ router.get('/', (req, res, next)=>{
     });
 });
 
-router.post('/', (req, res, next) =>{
+router.post('/', AuthMiddleware.mandatory, (req, res, next) =>{
 
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'INSERT INTO colheita (plant_usuario, func_colheita, desc_colheita, qtd_colheita, uni_colheita, data_colheita) VALUES (?,?,?,?,?,?)',
-            [req.body.plant_usuario, req.body.func_colheita, req.body.desc_colheita, req.body.qtd_colheita, req.body.uni_colheita, req.body.data_colheita],
+            'INSERT INTO pests (insecticide, description, identified, fought) VALUES (?,?,?,?)',
+            [req.body.insecticide, req.body.description, req.body.identified, req.body.fought],
             
             (error, result, field) => {
                 conn.release();
@@ -42,8 +46,7 @@ router.post('/', (req, res, next) =>{
                     });
                 } 
                 res.status(201).send({
-                    mensagem : 'Colheita inserida com sucesso!',
-                    id_colheita : result.insertId
+                    message : 'Praga adicionada ao sistema com sucesso!'
                 });
             }
         )
@@ -52,15 +55,15 @@ router.post('/', (req, res, next) =>{
 
 });
 
-router.patch('/', (req, res, next) =>{
+router.patch('/', AuthMiddleware.mandatory, (req, res, next) =>{
 
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'UPDATE colheita SET func_colheita = ?, desc_colheita = ?, qtd_colheita = ?, uni_colheita = ?, data_colheita = ? WHERE id_colheita = ?',             
-            [req.body.func_colheita, req.body.desc_colheita, req.body.qtd_colheita, req.body.uni_colheita, req.body.data_colheita, req.body.id_colheita],
+            'UPDATE pests SET insecticide = ?, description = ?, identified = ?, fought = ? WHERE id = ?',             
+            [req.body.insecticide, req.body.description, req.body.identified, req.body.fought, req.body.id],
             
             (error, result, field) => {
                 conn.release();
@@ -72,7 +75,7 @@ router.patch('/', (req, res, next) =>{
                     });
                 } 
                 res.status(202).send({
-                    mensagem : 'Alteração concluída com sucesso!'
+                    message : 'Alteração concluída com sucesso!'
                 });
             }
         )
@@ -81,14 +84,17 @@ router.patch('/', (req, res, next) =>{
 
 });
 
-router.delete('/', (req, res, next) => {
+router.delete('/:id', AuthMiddleware.mandatory, (req, res, next) =>{
+
+    const id = req.params.id;
+    
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'DELETE FROM colheita WHERE id_colheita = ?',             
-            [req.body.id_colheita],
+            'DELETE FROM pests WHERE id = ?',             
+            id,
             
             (error, result, field) => {
                 conn.release();
@@ -100,7 +106,7 @@ router.delete('/', (req, res, next) => {
                     });
                 } 
                 res.status(202).send({
-                    mensagem : 'Colheita removida com sucesso!'
+                    message : 'Praga removida com sucesso!'
                 });
             }
         )

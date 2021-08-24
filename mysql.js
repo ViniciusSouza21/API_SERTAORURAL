@@ -10,4 +10,6 @@ var pool = mysql.createPool({
 
 });
 
+console.log("Database connection successfully established!");
+
 exports.pool = pool;

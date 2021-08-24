@@ -2,15 +2,19 @@ const express = require('express');
 const app = require('../app');
 const router = express.Router();
 const mysql =  require("../mysql").pool;
+const AuthMiddleware = require('../middleware/AuthMiddleware');
 
-router.get('/', (req, res, next)=>{
+router.get('/:id', AuthMiddleware.mandatory, (req, res, next)=>{
+
+    const id = req.params.id;
 
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error }) }
 
         conn.query(
-            'SELECT * FROM insumos;',
+            'SELECT * FROM inputs WHERE user = ?;',
+            id,
             
             (error, result, fields) => {
                 
@@ -22,15 +26,15 @@ router.get('/', (req, res, next)=>{
     });
 });
 
-router.post('/', (req, res, next) =>{
+router.post('/', AuthMiddleware.mandatory, (req, res, next) =>{
 
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'INSERT INTO insumos (usuario_insumo, estoque, valor_estoque, desc_insumo, data_compra, data_validade, uni_insumos) VALUES (?,?,?,?,?,?,?)',
-            [req.body.usuario_insumo, req.body.estoque, req.body.valor_estoque, req.body.desc_insumo, req.body.data_compra, req.body.data_validade, req.body.uni_insumos],
+            'INSERT INTO inputs (user, stock, value, description, purchase, validity, unit) VALUES (?,?,?,?,?,?,?)',
+            [req.body.user, req.body.stock, req.body.value, req.body.description, req.body.purchase, req.body.validity, req.body.unit],
             
             (error, result, field) => {
                 conn.release();
@@ -42,7 +46,7 @@ router.post('/', (req, res, next) =>{
                     });
                 } 
                 res.status(201).send({
-                    mensagem : 'Insumo inserido com sucesso!',
+                    message : 'Insumo inserido com sucesso!',
                     id_insumo : result.insertId
                 });
             }
@@ -52,15 +56,15 @@ router.post('/', (req, res, next) =>{
 
 });
 
-router.patch('/', (req, res, next) =>{
+router.patch('/', AuthMiddleware.mandatory, (req, res, next) =>{
 
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'UPDATE insumos SET estoque = ?, valor_estoque = ?, desc_insumo = ?, data_compra = ?, data_validade = ?, uni_insumos = ? WHERE id_insumo = ?',             
-            [req.body.estoque, req.body.valor_estoque, req.body.desc_insumo, req.body.data_compra, req.body.data_validade, req.body.uni_insumos, req.body.id_insumo],
+            'UPDATE inputs SET stock = ?, value = ?, description = ?, purchase = ?, validity = ?, unit = ? WHERE id = ?',             
+            [req.body.stock, req.body.value, req.body.description, req.body.purchase, req.body.validity, req.body.unit, req.body.id],
             
             (error, result, field) => {
                 conn.release();
@@ -72,7 +76,7 @@ router.patch('/', (req, res, next) =>{
                     });
                 } 
                 res.status(202).send({
-                    mensagem : 'Alteração concluída com sucesso!'
+                    message : 'Alteração concluída com sucesso!'
                 });
             }
         )
@@ -81,14 +85,17 @@ router.patch('/', (req, res, next) =>{
 
 });
 
-router.delete('/', (req, res, next) =>{
+router.delete('/:id', AuthMiddleware.mandatory, (req, res, next) =>{
+
+    const id = req.params.id;
+
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'DELETE FROM insumos WHERE id_insumo = ?',             
-            [req.body.id_insumo],
+            'DELETE FROM inputs WHERE id = ?',             
+            id,
             
             (error, result, field) => {
                 conn.release();
@@ -100,7 +107,7 @@ router.delete('/', (req, res, next) =>{
                     });
                 } 
                 res.status(202).send({
-                    mensagem : 'Insumo removido com sucesso!'
+                    message : 'Insumo removido com sucesso!'
                 });
             }
         )

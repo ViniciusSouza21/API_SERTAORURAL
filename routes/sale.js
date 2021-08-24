@@ -1,16 +1,20 @@
 const express = require('express');
 const app = require('../app');
 const router = express.Router();
-const mysql =  require("../mysql").pool;
+const mysql =  require('../mysql').pool;
+const AuthMiddleware = require('../middleware/AuthMiddleware');
 
-router.get('/', (req, res, next)=>{
+router.get('/:id', AuthMiddleware.mandatory, (req, res, next)=>{
+
+    const id = req.params.id;
 
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error }) }
 
         conn.query(
-            'SELECT * FROM produto;',
+            'SELECT * FROM sales WHERE user = ?;',
+            id,
             
             (error, result, fields) => {
                 
@@ -22,15 +26,15 @@ router.get('/', (req, res, next)=>{
     });
 });
 
-router.post('/', (req, res, next) =>{
+router.post('/', AuthMiddleware.mandatory, (req, res, next) =>{
 
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'INSERT INTO produto (usuario_produto, fornec_produto, desc_produto, valor_produto, qtd_produto, uni_produto) VALUES (?,?,?,?,?,?)',
-            [req.body.usuario_produto, req.body.fornec_produto,req.body.desc_produto, req.body.valor_produto, req.body.qtd_produto, req.body.uni_produto],
+            'INSERT INTO sales (user, description, date, buyer, quantity, value, unit, frequency) VALUES (?,?,?,?,?,?,?,?)',
+            [req.body.user, req.body.description, req.body.date, req.body.buyer, req.body.quantity, req.body.value, req.body.unit, req.body.frequency],
             
             (error, result, field) => {
                 conn.release();
@@ -42,7 +46,8 @@ router.post('/', (req, res, next) =>{
                     });
                 } 
                 res.status(201).send({
-                    mensagem : 'produto inserido com sucesso!'
+                    message : 'Venda adicionada com sucesso!',
+                    id_venda: result.insertId
                 });
             }
         )
@@ -51,15 +56,16 @@ router.post('/', (req, res, next) =>{
 
 });
 
-router.patch('/', (req, res, next) =>{
+router.patch('/', AuthMiddleware.mandatory, (req, res, next) =>{
 
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'UPDATE produto SET desc_produto = ?, valor_produto = ?, qtd_produto = ?, uni_produto = ? WHERE id_produto = ?',             
-            [req.body.desc_produto, req.body.valor_produto, req.body.qtd_produto,req.body.uni_produto, req.body.id_produto],
+            'UPDATE sales SET description = ?, date = ?, buyer = ?, quantity = ?, value = ?, unit = ?, frequency = ? WHERE id = ?',   
+
+            [req.body.description, req.body.date, req.body.buyer, req.body.quantity, req.body.value, req.body.unit, req.body.frequency, req.body.id],
             
             (error, result, field) => {
                 conn.release();
@@ -71,7 +77,7 @@ router.patch('/', (req, res, next) =>{
                     });
                 } 
                 res.status(202).send({
-                    mensagem : 'Alteração concluída com sucesso!'
+                    message : 'Alteração concluída com sucesso!'
                 });
             }
         )
@@ -80,14 +86,17 @@ router.patch('/', (req, res, next) =>{
 
 });
 
-router.delete('/', (req, res, next) =>{
+router.delete('/:id', AuthMiddleware.mandatory, (req, res, next) =>{
+
+    const id = req.params.id;
+
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'DELETE FROM produto WHERE id_produto = ?',             
-            [req.body.id_produto],
+            'DELETE FROM sales WHERE id = ?',             
+            id,
             
             (error, result, field) => {
                 conn.release();
@@ -99,7 +108,7 @@ router.delete('/', (req, res, next) =>{
                     });
                 } 
                 res.status(202).send({
-                    mensagem : 'Produto removido com sucesso!'
+                    message : 'Remoção concluída com sucesso!'
                 });
             }
         )

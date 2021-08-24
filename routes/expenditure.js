@@ -2,15 +2,19 @@ const express = require('express');
 const app = require('../app');
 const router = express.Router();
 const mysql =  require("../mysql").pool;
+const AuthMiddleware = require('../middleware/AuthMiddleware');
 
-router.get('/', (req, res, next)=>{
+router.get('/:id', AuthMiddleware.mandatory, (req, res, next)=>{
+
+    const id = req.params.id;
 
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error }) }
 
         conn.query(
-            'SELECT * FROM fornecedor;',
+            'SELECT * FROM expenditure WHERE user = ?;',
+            id,
             
             (error, result, fields) => {
                 
@@ -22,15 +26,15 @@ router.get('/', (req, res, next)=>{
     });
 });
 
-router.post('/', (req, res, next) =>{
+router.post('/', AuthMiddleware.mandatory, (req, res, next) =>{
 
-    mysql.getConnection((error, conn) =>{
+    mysql.getConnection((error, conn) => {
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'INSERT INTO fornecedor (produtos, nome, email, telefone, cnpj, endereco) VALUES (?,?,?,?,?,?)',
-            [req.body.produtos, req.body.nome,req.body.email, req.body.telefone, req.body.cnpj, req.body.endereco],
+            'INSERT INTO expenditure (user, description, date, value, pay, frequency) VALUES (?,?,?,?,?,?)',
+            [req.body.user, req.body.description, req.body.date, req.body.value, req.body.pay, req.body.frequency],
             
             (error, result, field) => {
                 conn.release();
@@ -42,8 +46,8 @@ router.post('/', (req, res, next) =>{
                     });
                 } 
                 res.status(201).send({
-                    mensagem : 'Fornecedor Inserido com sucesso!',
-                    id_fornecedor : result.insertId
+                    message : 'Despesa inserida com sucesso!',
+                    id_colheita : result.insertId
                 });
             }
         )
@@ -52,15 +56,15 @@ router.post('/', (req, res, next) =>{
 
 });
 
-router.patch('/', (req, res, next) =>{
+router.patch('/', AuthMiddleware.mandatory, (req, res, next) =>{
 
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'UPDATE fornecedor SET produtos = ?, nome = ?, email = ?, telefone = ?, cnpj = ?, endereco = ? WHERE id_fornecedor = ?',             
-            [req.body.produtos, req.body.nome, req.body.email, req.body.telefone, req.body.cnpj, req.body.endereco, req.body.id_fornecedor],
+            'UPDATE expenditure SET description = ?, date = ?, value = ?, pay = ?, frequency = ? WHERE id = ?',             
+            [req.body.description, req.body.date, req.body.value, req.body.pay, req.body.frequency, req.body.id],
             
             (error, result, field) => {
                 conn.release();
@@ -72,7 +76,7 @@ router.patch('/', (req, res, next) =>{
                     });
                 } 
                 res.status(202).send({
-                    mensagem : 'Alteração concluída com sucesso!'
+                    message : 'Alteração concluída com sucesso!'
                 });
             }
         )
@@ -81,14 +85,17 @@ router.patch('/', (req, res, next) =>{
 
 });
 
-router.delete('/', (req, res, next) =>{
+router.delete('/:id', AuthMiddleware.mandatory, (req, res, next) =>{
+
+    const id = req.params.id;
+
     mysql.getConnection((error, conn) =>{
 
         if(error){ return res.status(500).send({ error : error });}
 
         conn.query(
-            'DELETE FROM fornecedor WHERE id_fornecedor = ?',             
-            [req.body.id_fornecedor],
+            'DELETE FROM expenditure WHERE id = ?',             
+            id,
             
             (error, result, field) => {
                 conn.release();
@@ -100,7 +107,7 @@ router.delete('/', (req, res, next) =>{
                     });
                 } 
                 res.status(202).send({
-                    mensagem : 'Fornecedor removido com sucesso!'
+                    message : 'Despesa removida com sucesso!'
                 });
             }
         )
