@@ -1,7 +1,7 @@
 {
-  "name": "rest-api",
+  "name": "API-SERTAO-RURAL",
   "version": "1.0.0",
-  "description": "Desenvolvimento de uma API",
+  "description": "Desenvolvimento de uma API para o sistema web Sertão Rural - Projeto Integrador (IF SERTÃO)",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
