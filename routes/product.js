@@ -108,7 +108,7 @@ router.patch(
       }
 
       conn.query(
-        "UPDATE product SET description = ?, value = ?, available = ?, unit = ?, category = ?, name = ? WHERE id = ?",
+        "UPDATE product SET description = ?, value = ?, available = ?, unit = ?, category = ?, name = ?, supplier = ? WHERE id = ?",
         [
           req.body.description,
           req.body.value,
@@ -116,6 +116,7 @@ router.patch(
           req.body.unit,
           req.body.category,
           req.body.name,
+          req.body.supplier,
           req.body.id,
         ],
 
