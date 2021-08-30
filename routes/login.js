@@ -54,7 +54,7 @@ router.post("/", (req, res, next) => {
           });
         }
 
-        return res.status(401).send({ valido: false });
+        return res.status(401).send({ valid: false });
       });
     });
   });
