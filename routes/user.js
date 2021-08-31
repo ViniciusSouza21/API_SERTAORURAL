@@ -331,7 +331,7 @@ router.patch("/admin/password", AuthMiddleware.mandatory, (req, res, next) => {
       return res.status(500).send({ error: error });
     }
 
-    const admin = "SELECT admin FROM user WHERE id = ?";
+    // const admin = "SELECT admin FROM user WHERE id = ?";
     const id = req.body.id;
 
     const hash = bcrypt.hashSync(req.body.password, 10);

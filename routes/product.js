@@ -30,7 +30,7 @@ const upload = multer({
   // fileFilter: fileFilter
 });
 
-router.get("/:id", AuthMiddleware.mandatory, (req, res, next) => {
+router.get("/", AuthMiddleware.mandatory, (req, res, next) => {
   const id = req.params.id;
 
   mysql.getConnection((error, conn) => {
