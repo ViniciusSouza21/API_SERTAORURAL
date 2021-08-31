@@ -129,9 +129,9 @@ router.post("/", upload.single("profile"), (req, res, next) => {
                   });
                 }
                 res.status(201).send({
-                  image_users: req.file.path,
                   message: "Usuário inserido com sucesso!",
                   id_user: result.insertId,
+                  image_user: req.file.path,
                 });
               }
             );
@@ -301,10 +301,10 @@ router.patch("/password/:id", AuthMiddleware.mandatory, (req, res, next) => {
         }
 
         if (result) {
+
           conn.query(
-            "UPDATE user SET password WHERE id = ?",
+            "UPDATE user SET password = ? WHERE id = ?",
             [
-              req.oldPassword, 
               req.body.newPassword,
               id,
             ],
