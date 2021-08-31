@@ -191,8 +191,8 @@ router.patch("/personal", AuthMiddleware.mandatory, (req, res, next) => {
     }
 
     conn.query(
-      "UPDATE user SET cpf = ?, name = ?, surname = ? WHERE id = ?",
-      [req.body.cpf, req.body.name, req.body.surname, req.body.id],
+      "UPDATE user SET cpf = ?, name = ?, surname = ?, email = ? WHERE id = ?",
+      [req.body.cpf, req.body.name, req.body.surname, req.body.email, req.body.id],
 
       (error, result, field) => {
         conn.release();
@@ -295,38 +295,37 @@ router.patch("/password/:id", AuthMiddleware.mandatory, (req, res, next) => {
         return res.status(401).send({ message: "Informe sua antiga senha." });
       }
 
-      bcrypt.compare(req.body.oldPassword, results[0].password, (err, result) => {
-        const pass = bcrypt.compare(req.body.oldPassword, results[0].password);
-
-        if (err) {
-          return res.status(401).send({ message: "Falha na autenticação!" });
-        }
-
-        const hash = bcrypt.hashSync(req.body.newPassword, 10);
-
-        if (result) {
-
-          conn.query(
-            "UPDATE user SET password = ? WHERE id = ?",
-            [
-              hash,
-              id,
-            ],
+      bcrypt.compare(
+        req.body.oldPassword,
+        results[0].password,
+        (err, result) => {
+          const pass = bcrypt.compare(
+            req.body.oldPassword,
+            results[0].password
           );
 
-          return res.status(200).send({
-            message: "Senha alterada com sucesso!",
+          if (err) {
+            return res.status(401).send({ message: "Falha na autenticação!" });
+          }
+
+          const hash = bcrypt.hashSync(req.body.newPassword, 10);
+
+          if (result) {
+            conn.query("UPDATE user SET password = ? WHERE id = ?", [hash, id]);
+
+            return res.status(200).send({
+              message: "Senha alterada com sucesso!",
+            });
+          }
+
+          return res.status(401).send({
+            valid: false,
+            message: "Senha inválida!",
           });
         }
-
-        return res.status(401).send({ 
-          valid: false,
-          message: "Senha inválida!" 
-        });
-      });
+      );
     });
   });
-
 });
 
 router.delete("/:id", AuthMiddleware.mandatory, (req, res, next) => {
