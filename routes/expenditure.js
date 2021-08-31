@@ -77,8 +77,8 @@ router.patch("/", AuthMiddleware.mandatory, (req, res, next) => {
         req.body.value,
         req.body.pay,
         req.body.frequency,
-        req.body.id,
         req.body.dueDate,
+        req.body.id,
       ],
 
       (error, result, field) => {
