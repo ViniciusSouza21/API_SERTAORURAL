@@ -35,7 +35,7 @@ router.get("/:id", AuthMiddleware.mandatory, (req, res, next) => {
             sumNov =
             sumDec =
               0
-            ];
+        ];
 
         arrayexpenditure = {};
 
@@ -50,65 +50,65 @@ router.get("/:id", AuthMiddleware.mandatory, (req, res, next) => {
             sumJan += saleValue;
           }
 
-          if (months === 1) {
+          else if (months === 1) {
             sumFeb += saleValue;
           }
 
-          if (months === 2) {
+          else if (months === 2) {
             sumMar += saleValue;
           }
 
-          if (months === 3) {
+          else if (months === 3) {
             sumApr += saleValue;
           }
 
-          if (months === 4) {
+          else if (months === 4) {
             sumMay += saleValue;
           }
 
-          if (months === 5) {
+          else if (months === 5) {
             sumJun += saleValue;
           }
 
-          if (months === 6) {
+          else if (months === 6) {
             sumJul += saleValue;
           }
 
-          if (months === 7) {
+          else if (months === 7) {
             sumAug += saleValue;
           }
 
-          if (months === 8) {
+          else if (months === 8) {
             sumSep += saleValue;
           }
 
-          if (months === 9) {
+          else if (months === 9) {
             sumOct += saleValue;
           }
 
-          if (months === 10) {
+          else if (months === 10) {
             sumNov += saleValue;
           }
 
-          if (months === 11) {
+          else if(months === 11) {
             sumDec += saleValue;
           }
         }
 
         arrayexpenditure = {
-          "Jan": sumJan,
-          "Feb": sumFeb,
-          "Mar": sumMar,
-          "Apr": sumApr,
-          "May": sumMay,
-          "Jun": sumJun,
-          "Jul": sumJul,
-          "Aug": sumAug,
-          "Sep": sumSep,
-          "Oct": sumOct,
-          "Nov": sumNov,
-          "Dec": sumDec,
-      };
+          Jan: sumJan,
+          Feb: sumFeb,
+          Mar: sumMar,
+          Apr: sumApr,
+          May: sumMay,
+          Jun: sumJun,
+          Jul: sumJul,
+          Aug: sumAug,
+          Sep: sumSep,
+          Oct: sumOct,
+          Nov: sumNov,
+          Dec: sumDec,
+        };
 
         return res.status(200).send({
           sum_expenditure_month: arrayexpenditure,

@@ -25,9 +25,9 @@ const fileFilter = (req, file, calback) => {
 
 const upload = multer({
   storage: storage,
-  // limits: {
-  //   fileSize: 1024 * 1024 * 10,
-  // },
+  limits: {
+    fileSize: 1024 * 1024 * 10,
+  },
   // fileFilter: fileFilter
 });
 
