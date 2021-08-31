@@ -129,9 +129,9 @@ router.post("/", upload.single("profile"), (req, res, next) => {
                   });
                 }
                 res.status(201).send({
+                  image_user: req.file.path,
                   message: "Usuário inserido com sucesso!",
                   id_user: result.insertId,
-                  image_user: req.file.path,
                 });
               }
             );
@@ -148,6 +148,8 @@ router.put("/", AuthMiddleware.mandatory, (req, res, next) => {
       return res.status(500).send({ error: error });
     }
 
+    const hash = bcrypt.hashSync(req.body.password, 10);
+
     conn.query(
       "UPDATE user SET admin = ?, cpf = ?, name = ?, surname = ?, email = ?, password = ?, active = ?, street = ?, neighborhood = ?, city = ?, cep = ? WHERE id = ?",
       [
@@ -156,7 +158,7 @@ router.put("/", AuthMiddleware.mandatory, (req, res, next) => {
         req.body.name,
         req.body.surname,
         req.body.email,
-        req.body.password,
+        hash,
         req.body.active,
         req.body.street,
         req.body.neighborhood,
@@ -300,12 +302,14 @@ router.patch("/password/:id", AuthMiddleware.mandatory, (req, res, next) => {
           return res.status(401).send({ message: "Falha na autenticação!" });
         }
 
+        const hash = bcrypt.hashSync(req.body.newPassword, 10);
+
         if (result) {
 
           conn.query(
             "UPDATE user SET password = ? WHERE id = ?",
             [
-              req.body.newPassword,
+              hash,
               id,
             ],
           );
