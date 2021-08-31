@@ -19,6 +19,7 @@ const routeExpenditures = require("./routes/expenditure");
 const routeHarvests = require("./routes/harvest");
 
 const routeSumSalesMonths = require("./routes/sumSalesMonth");
+const routeSumExpendituresMonths = require("./routes/sumExpenditureMonth");
 
 const rotaLogin = require("./routes/login");
 
@@ -65,6 +66,7 @@ app.use("/expenditures", routeExpenditures);
 app.use("/harvests", routeHarvests);
 
 app.use("/sales/summonths", routeSumSalesMonths);
+app.use("/expenditures/summonths", routeSumExpendituresMonths);
 
 app.use("/login", rotaLogin);
 
