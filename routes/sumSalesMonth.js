@@ -13,7 +13,7 @@ router.get("/:id", AuthMiddleware.mandatory, (req, res, next) => {
     }
 
     conn.query(
-      "SELECT date, value FROM sales WHERE user = ?;",
+      "SELECT date, value, quantity FROM sales WHERE user = ?;",
       id,
 
       (error, result, fields) => {
@@ -42,56 +42,59 @@ router.get("/:id", AuthMiddleware.mandatory, (req, res, next) => {
         for (let i = 0; i < result.length; i++) {
           let DateObj = new Date(result[i].date);
           let saleValue = result[i].value;
+          let saleQtd = result[i].quantity;
+
+          let value = (saleValue * saleQtd);
 
           let months = DateObj.getMonth();
           let year = DateObj.getFullYear();
 
           if (months === 0) {
-            sumJan += saleValue;
+            sumJan += value;
           }
 
           else if (months === 1) {
-            sumFeb += saleValue;
+            sumFeb += value;
           }
 
           else if (months === 2) {
-            sumMar += saleValue;
+            sumMar += value;
           }
 
           else if (months === 3) {
-            sumApr += saleValue;
+            sumApr += value;
           }
 
           else if (months === 4) {
-            sumMay += saleValue;
+            sumMay += value;
           }
 
           else if (months === 5) {
-            sumJun += saleValue;
+            sumJun += value;
           }
 
           else if (months === 6) {
-            sumJul += saleValue;
+            sumJul += value;
           }
 
           else if (months === 7) {
-            sumAug += saleValue;
+            sumAug += value;
           }
 
           else if (months === 8) {
-            sumSep += saleValue;
+            sumSep += value;
           }
 
           else if (months === 9) {
-            sumOct += saleValue;
+            sumOct += value;
           }
 
           else if (months === 10) {
-            sumNov += saleValue;
+            sumNov += value;
           }
 
           else if (months === 11) {
-            sumDec += saleValue;
+            sumDec += value;
           }
         }
 

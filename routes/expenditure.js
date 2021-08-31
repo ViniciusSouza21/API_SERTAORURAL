@@ -34,7 +34,7 @@ router.post("/", AuthMiddleware.mandatory, (req, res, next) => {
     }
 
     conn.query(
-      "INSERT INTO expenditure (user, description, date, value, pay, frequency, dueDate) VALUES (?,?,?,?,?,?,?)",
+      "INSERT INTO expenditure (user, description, date, value, pay, frequency) VALUES (?,?,?,?,?,?)",
       [
         req.body.user,
         req.body.description,
@@ -42,7 +42,7 @@ router.post("/", AuthMiddleware.mandatory, (req, res, next) => {
         req.body.value,
         req.body.pay,
         req.body.frequency,
-        req.body.dueDate
+        // req.body.dueDate
       ],
 
       (error, result, field) => {
