@@ -148,17 +148,14 @@ router.put("/", AuthMiddleware.mandatory, (req, res, next) => {
       return res.status(500).send({ error: error });
     }
 
-    const hash = bcrypt.hashSync(req.body.password, 10);
-
     conn.query(
-      "UPDATE user SET admin = ?, cpf = ?, name = ?, surname = ?, email = ?, password = ?, active = ?, street = ?, neighborhood = ?, city = ?, cep = ? WHERE id = ?",
+      "UPDATE user SET admin = ?, cpf = ?, name = ?, surname = ?, email = ?, active = ?, street = ?, neighborhood = ?, city = ?, cep = ? WHERE id = ?",
       [
         req.body.admin,
         req.body.cpf,
         req.body.name,
         req.body.surname,
         req.body.email,
-        hash,
         req.body.active,
         req.body.street,
         req.body.neighborhood,
@@ -325,6 +322,38 @@ router.patch("/password/:id", AuthMiddleware.mandatory, (req, res, next) => {
         }
       );
     });
+  });
+});
+
+router.patch("/admin/password", AuthMiddleware.mandatory, (req, res, next) => {
+  mysql.getConnection((error, conn) => {
+    if (error) {
+      return res.status(500).send({ error: error });
+    }
+
+    const admin = "SELECT admin FROM user WHERE id = ?";
+    const id = req.body.id;
+
+    const hash = bcrypt.hashSync(req.body.password, 10);
+
+    conn.query(
+      "UPDATE user SET password = ? WHERE id = ?",
+      [hash, req.body.id],
+
+      (error, result, field) => {
+        conn.release();
+
+        if (error) {
+          return res.status(500).send({
+            error: error,
+            response: null,
+          });
+        }
+        res.status(202).send({
+          message: "Alteração concluída com sucesso!",
+        });
+      }
+    );
   });
 });
 
