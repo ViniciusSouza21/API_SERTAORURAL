@@ -70,7 +70,7 @@ router.patch("/", AuthMiddleware.mandatory, (req, res, next) => {
     }
 
     conn.query(
-      "UPDATE expenditure SET description = ?, date = ?, value = ?, pay = ?, frequency = ? WHERE id = ?",
+      "UPDATE expenditure SET description = ?, date = ?, value = ?, pay = ?, frequency = ?, dueDate = ? WHERE id = ?",
       [
         req.body.description,
         req.body.date,
@@ -78,6 +78,7 @@ router.patch("/", AuthMiddleware.mandatory, (req, res, next) => {
         req.body.pay,
         req.body.frequency,
         req.body.id,
+        req.body.dueDate,
       ],
 
       (error, result, field) => {
