@@ -23,13 +23,8 @@ const routeSumExpendituresMonths = require("./routes/sumExpenditureMonth");
 
 const rotaLogin = require("./routes/login");
 
-const corsOptions = {
-  origin: "*",
-  credentials: true,
-  optionsSuccessStatus: 200,
-};
 
-app.use(cors(corsOptions));
+app.use(cors());
 
 app.use(morgan("dev"));
 app.use(express.urlencoded({ extended: false }));
