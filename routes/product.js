@@ -31,7 +31,6 @@ const upload = multer({
 });
 
 router.get("/", AuthMiddleware.mandatory, (req, res, next) => {
-  const id = req.params.id;
 
   mysql.getConnection((error, conn) => {
     if (error) {
@@ -39,9 +38,8 @@ router.get("/", AuthMiddleware.mandatory, (req, res, next) => {
     }
 
     conn.query(
-      "SELECT * FROM product WHERE supplier = ?;",
-      id,
-
+      "SELECT * FROM product;",
+  
       (error, result, fields) => {
         if (error) {
           return res.status(500).send({ error: error });
