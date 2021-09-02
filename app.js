@@ -24,7 +24,7 @@ const routeSumExpendituresMonths = require("./routes/sumExpenditureMonth");
 const rotaLogin = require("./routes/login");
 
 const corsOptions = {
-  origin: "https://sertaoruralapp.herokuapp.com/",
+  origin: "*",
   credentials: true,
   optionsSuccessStatus: 200,
 };
